@@ -65,18 +65,22 @@ public class AzureNotificationHubManager {
             //  mensagem de notificação aqui
 //            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Teste\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
             String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Teste\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
-//            NotificationMessage notificationMessage = new NotificationMessage();
+            NotificationMessage notificationMessage = new NotificationMessage();
 
-//            notificationMessage.setTitle(notificationRequest.getNotification().getTitle());
-//            notificationMessage.setBody(notificationRequest.getNotification().getBody());
+            notificationMessage.setTitle(notificationRequest.getNotification().getTitle());
+            notificationMessage.setBody(notificationRequest.getNotification().getBody());
 
-//            DataMessage dataMessage = new DataMessage();
-//            dataMessage.setChave1(notificationRequest.getData().getChave1());
-//            dataMessage.setChave2(notificationRequest.getData().getChave2());
+            DataMessage dataMessage = new DataMessage();
+            dataMessage.setChave1(notificationRequest.getData().getChave1());
+            dataMessage.setChave2(notificationRequest.getData().getChave2());
+
+            MessagePayload messagePayload = new MessagePayload();
+            messagePayload.setNotification(notificationMessage);
+            messagePayload.setData(dataMessage);
 
 
             ObjectMapper objectMapper = new ObjectMapper();
-            String message = objectMapper.writeValueAsString(notificationPayload);
+            String message = objectMapper.writeValueAsString(messagePayload);
 
 
             Notification notification = Notification.createFcmNotification(message);
