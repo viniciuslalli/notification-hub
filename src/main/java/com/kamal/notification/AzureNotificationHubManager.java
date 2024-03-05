@@ -64,7 +64,7 @@ public class AzureNotificationHubManager {
 
             //  mensagem de notificação aqui
 //            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Teste\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
-            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"%s\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
+            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Teste\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
 //            NotificationMessage notificationMessage = new NotificationMessage();
 
 //            notificationMessage.setTitle(notificationRequest.getNotification().getTitle());
