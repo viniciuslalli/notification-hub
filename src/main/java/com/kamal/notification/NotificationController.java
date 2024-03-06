@@ -36,25 +36,25 @@ public class NotificationController {
 //    }
 
 
-    @PostMapping(value = "/sendToDeviceList", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> sendNotificationToMultipleDevices(@RequestBody List<String> deviceTokens) {
-        try {
-            NotificationOutcome notificationOutcome = hub.pushMessageToMultipleDevicesGCM(deviceTokens);
-            String responseMessage = MessageFormat.format("Pushed notification to list - Notification ID: {0}, Tracking ID: {1}",
-                    notificationOutcome.getNotificationId(),
-                    notificationOutcome.getTrackingId());
-
-            return ResponseEntity.ok(responseMessage);
-        } catch (Exception e) {
-            String errorMessage = MessageFormat.format("Error sending notification: {0}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
-        }
-    }
+//    @PostMapping(value = "/sendToDeviceList", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity<String> sendNotificationToMultipleDevices(@RequestBody List<String> deviceTokens) {
+//        try {
+//            NotificationOutcome notificationOutcome = hub.pushMessageToMultipleDevicesGCM(deviceTokens);
+//            String responseMessage = MessageFormat.format("Pushed notification to list - Notification ID: {0}, Tracking ID: {1}",
+//                    notificationOutcome.getNotificationId(),
+//                    notificationOutcome.getTrackingId());
+//
+//            return ResponseEntity.ok(responseMessage);
+//        } catch (Exception e) {
+//            String errorMessage = MessageFormat.format("Error sending notification: {0}", e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+//        }
+//    }
 
     @PostMapping(value = "/pushSendDirectMessage", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity pushSendDirectMessageToAndroidList(@RequestBody PushNotification request) {
         try {
-            List<NotificationOutcome> outcome = hub.pushNotification(request);
+            NotificationOutcome outcome = hub.pushNotification(request);
             return ResponseEntity.ok(outcome);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Falha ao enviar notificações: " + e.getMessage());
@@ -93,26 +93,26 @@ public class NotificationController {
 //            }
 //    }
 //
-//    @RequestMapping(value = "/getRegistrations",method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
-//    public ResponseEntity getRegistrations() {
-//
-//        CollectionResult registration = hub.getRegistrations();
-//
-//        if (registration == null){
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registrations not found! " );
-//        } else {
-//            return ResponseEntity.ok(registration);
-//        }
-//    }
-//
-//    @DeleteMapping(value = "/deleteRegistrationId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-//    public ResponseEntity deleteRegistrationId(@RequestBody RegistrationRequest request) {
-//
-//            Boolean deletetedRegistration = hub.deleteRegistrationId(request);
-//
-//            return deletetedRegistration ? ResponseEntity.ok("RegistrationId: " + request.getRegistrationId() + " deleted with success!")
-//                    : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Atempting of delete process failed");
-//    }
+    @RequestMapping(value = "/getRegistrations",method = RequestMethod.GET, produces = {MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity getRegistrations() {
+
+        CollectionResult registration = hub.getRegistrations();
+
+        if (registration == null){
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Registrations not found! " );
+        } else {
+            return ResponseEntity.ok(registration);
+        }
+    }
+
+    @DeleteMapping(value = "/deleteRegistrationId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity deleteRegistrationId(@RequestBody RegistrationRequest request) {
+
+            Boolean deletetedRegistration = hub.deleteRegistrationId(request);
+
+            return deletetedRegistration ? ResponseEntity.ok("RegistrationId: " + request.getRegistrationId() + " deleted with success!")
+                    : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Atempting of delete process failed");
+    }
 //
 //    @PatchMapping(value = "/updateRegistrationId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity updateRegistrationId(@RequestBody UpdatedRequest request) {

@@ -37,8 +37,8 @@ public class AzureNotificationHubManager {
 //        return notificationOutcome;
 //    }
 
-    public List<NotificationOutcome> pushNotification(PushNotification request) {
-        List<NotificationOutcome> notificationOutcomeList = Collections.singletonList(new NotificationOutcome("", ""));
+    public NotificationOutcome pushNotification(PushNotification request) {
+        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
         try {
             Notification notificationAndroid = null;
             Notification notificationIos = null;
@@ -54,30 +54,30 @@ public class AzureNotificationHubManager {
             if(!androidList.isEmpty()) {
                 androidTokenList = androidList.stream().map(destinatary -> destinatary.getDispostivos().getHash())
                         .collect(Collectors.toList());
-                String message = buildMessageForPlatform("G", request.getMensagemPush());
-              notificationAndroid = Notification.createFcmNotification(message);
+                String message = buildMessageForPlatform("G", request.getMensagemPush(), "");
+              notificationAndroid = Notification.createGcmNotification(message);
 
             } else if (!iosList.isEmpty()) {
                 iosTokenList = iosList.stream().map(destinatary -> destinatary.getDispostivos().getHash())
                         .collect(Collectors.toList());
-                String message = buildMessageForPlatform("A", request.getMensagemPush());
+                String message = buildMessageForPlatform("A", request.getMensagemPush(), "");
                 notificationIos = Notification.createAppleNotification(message);
             }
             if (notificationAndroid != null) {
-                 NotificationOutcome outcome = notificationHub.sendDirectNotification(notificationAndroid, androidTokenList);
-                notificationOutcomeList.add(outcome);
+                  notificationOutcome = notificationHub.sendDirectNotification(notificationAndroid, androidTokenList);
+
 
             } else if (notificationIos != null) {
-                NotificationOutcome outcome = notificationHub.sendDirectNotification(notificationIos, iosTokenList);
-                notificationOutcomeList.add(outcome);
+                notificationOutcome = notificationHub.sendDirectNotification(notificationIos, iosTokenList);
+
             }
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage());
         }
-        return notificationOutcomeList;
+        return notificationOutcome;
     }
 
-    private String buildMessageForPlatform(String platform, String message) throws JsonProcessingException {
+    private String buildMessageForPlatform(String platform, String message, String title) throws JsonProcessingException {
         String messageBuild = "";
 
         ObjectMapper mapper = new ObjectMapper();
@@ -87,8 +87,10 @@ public class AzureNotificationHubManager {
 
             messageBuild = mapper.writeValueAsString(iosTemplate);
         } else if(platform.equals("G")) {
-            AndroidNotification androidNotification = new AndroidNotification("", message);
+
+            AndroidNotification androidNotification = new AndroidNotification(title, message);
             Map<String, String> data = new HashMap<>();
+            data.put("chave1", "valor1");
             AndroidTemplate androidTemplate = new AndroidTemplate(androidNotification, data);
             messageBuild = mapper.writeValueAsString(androidTemplate);
         }
@@ -115,22 +117,22 @@ public class AzureNotificationHubManager {
 //        return notification;
 //    }
 
-//    public NotificationOutcome pushMessageToMultipleDevicesGCM(List<String> deviceTokens) {
-//        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
-//        try {
-//            //  mensagem de notificação aqui
-//            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Notificação de teste para o Sidney, Vinicius e Justo  Apenas\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
-//
-//            Notification notification = Notification.createFcmNotification(notificationPayload);
-//
-//            // Envie a notificação para o token atual
-//            notificationOutcome = notificationHub.sendDirectNotification(notification, deviceTokens);
-//
-//        } catch (Exception e) {
-//            logger.log(Level.SEVERE, "Azure Push Ne = {NotificationHubsException@7818} \"com.windowsazure.messaging.NotificationHubsException: Error: HTTP/1.1 403 Forbidden body: This operation requires one of the following permissions: [manage, send].\\nCurrent request has the following permissions: [listen].\\nPlease check both Namespace Network ACLs and used SharedAccessSignature.\"... Viewotification android devices failed.", e);
-//        }
-//        return notificationOutcome;
-//    }
+    public NotificationOutcome pushMessageToMultipleDevicesGCM(List<String> deviceTokens) {
+        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
+        try {
+            //  mensagem de notificação aqui
+            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Notificação de teste para o Sidney, Vinicius e Justo  Apenas\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
+
+            Notification notification = Notification.createFcmNotification(notificationPayload);
+
+            // Envie a notificação para o token atual
+            notificationOutcome = notificationHub.sendDirectNotification(notification, deviceTokens);
+
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Azure Push Ne = {NotificationHubsException@7818} \"com.windowsazure.messaging.NotificationHubsException: Error: HTTP/1.1 403 Forbidden body: This operation requires one of the following permissions: [manage, send].\\nCurrent request has the following permissions: [listen].\\nPlease check both Namespace Network ACLs and used SharedAccessSignature.\"... Viewotification android devices failed.", e);
+        }
+        return notificationOutcome;
+    }
 //
 //    public NotificationOutcome pushMessageToDeviceGCM(NotificationRequest notificationRequest) {
 //        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
@@ -203,40 +205,40 @@ public class AzureNotificationHubManager {
 //        }
 //    }
 //
-//    public Registration verifyRegistrationId(String registrationId){
-//        Registration registration = null;
-//        try {
-//             registration = notificationHub.getRegistration(registrationId);
-//        } catch (NotificationHubsException e) {
-//            logger.log(Level.SEVERE, "RegistrationId not found");
-//        }
-//        return registration;
-//    }
+    public Registration verifyRegistrationId(String registrationId){
+        Registration registration = null;
+        try {
+             registration = notificationHub.getRegistration(registrationId);
+        } catch (NotificationHubsException e) {
+            logger.log(Level.SEVERE, "RegistrationId not found");
+        }
+        return registration;
+    }
+
+    public CollectionResult getRegistrations(){
+        CollectionResult registration = null;
+        try {
+            registration = notificationHub.getRegistrations();
+            List<Registration> registrations = registration.getRegistrations();
+
+            logger.log(Level.INFO, "Total de registros: " + registrations.size());
+        } catch (NotificationHubsException e) {
+            logger.log(Level.SEVERE, "RegistrationId not found");
+        }
+        return registration;
+    }
 //
-//    public CollectionResult getRegistrations(){
-//        CollectionResult registration = null;
-//        try {
-//            registration = notificationHub.getRegistrations();
-//            List<Registration> registrations = registration.getRegistrations();
-//
-//            logger.log(Level.INFO, "Total de registros: " + registrations.size());
-//        } catch (NotificationHubsException e) {
-//            logger.log(Level.SEVERE, "RegistrationId not found");
-//        }
-//        return registration;
-//    }
-//
-//    public Boolean deleteRegistrationId(RegistrationRequest request){
-//        boolean result = false;
-//        Registration registrationDelete = verifyRegistrationId(request.getRegistrationId());
-//        try {
-//            notificationHub.deleteRegistration(registrationDelete);
-//            result = true;
-//        } catch (NotificationHubsException e) {
-//            logger.log(Level.SEVERE, "RegistrationId delete failed");
-//        }
-//        return result;
-//    }
+    public Boolean deleteRegistrationId(RegistrationRequest request){
+        boolean result = false;
+        Registration registrationDelete = verifyRegistrationId(request.getRegistrationId());
+        try {
+            notificationHub.deleteRegistration(registrationDelete);
+            result = true;
+        } catch (NotificationHubsException e) {
+            logger.log(Level.SEVERE, "RegistrationId delete failed");
+        }
+        return result;
+    }
 //
 //    public Registration updateRegistrationId(UpdatedRequest request) {
 //
