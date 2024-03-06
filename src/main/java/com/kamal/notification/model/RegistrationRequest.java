@@ -1,4 +1,4 @@
-package com.kamal.notification;
+package com.kamal.notification.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;

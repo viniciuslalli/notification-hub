@@ -1,5 +1,6 @@
-package com.kamal.notification;
+package com.kamal.notification.model;
 
+import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,7 +12,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class DataMessage {
-    private String chave1;
-    private String chave2;
+public class AndroidTemplate {
+
+    private AndroidNotification notification;
+    private Map<String, String> data;
+
 }

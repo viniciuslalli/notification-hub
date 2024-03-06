@@ -1,4 +1,4 @@
-package com.kamal.notification;
+package com.kamal.notification.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
@@ -11,11 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class NotificationRequest {
-    private String pnsToken;
-    private String clientTag;
-    private String platform;
-    private NotificationMessage notification;
-    private DataMessage data;
-
+public class Device {
+    private String hash;
+    private String plataforma;
 }
