@@ -90,7 +90,7 @@ public class AzureNotificationHubManager {
 
             AndroidNotification androidNotification = new AndroidNotification(title, message);
             Map<String, String> data = new HashMap<>();
-            data.put("chave1", "valor1");
+
             AndroidTemplate androidTemplate = new AndroidTemplate(androidNotification, data);
             messageBuild = mapper.writeValueAsString(androidTemplate);
         }
