@@ -5,9 +5,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kamal.notification.model.*;
 import com.windowsazure.messaging.*;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.xml.crypto.Data;
 import java.text.MessageFormat;
 import java.util.*;
 import java.util.logging.Level;
@@ -54,13 +56,13 @@ public class AzureNotificationHubManager {
             if(!androidList.isEmpty()) {
                 androidTokenList = androidList.stream().map(destinatary -> destinatary.getDispostivos().getHash())
                         .collect(Collectors.toList());
-                String message = buildMessageForPlatform("G", request.getMensagemPush(), "");
+                String message = buildMessageForPlatform("G", request);
               notificationAndroid = Notification.createGcmNotification(message);
 
             } else if (!iosList.isEmpty()) {
                 iosTokenList = iosList.stream().map(destinatary -> destinatary.getDispostivos().getHash())
                         .collect(Collectors.toList());
-                String message = buildMessageForPlatform("A", request.getMensagemPush(), "");
+                String message = buildMessageForPlatform("A", request);
                 notificationIos = Notification.createAppleNotification(message);
             }
             if (notificationAndroid != null) {
@@ -77,26 +79,27 @@ public class AzureNotificationHubManager {
         return notificationOutcome;
     }
 
-    private String buildMessageForPlatform(String platform, String message, String title) throws JsonProcessingException {
+    private String buildMessageForPlatform(String platform, PushNotification request) throws JsonProcessingException {
         String messageBuild = "";
 
         ObjectMapper mapper = new ObjectMapper();
+        DataTemplate data = new DataTemplate(request);
 
         if(platform.equals("A")) {
-            IosTemplate iosTemplate = new IosTemplate(new Alert(message));
+            Alert alertTemplate = new Alert("Teste Notificação", "Exemplo de teste de notificação");
+            IosTemplate iosTemplate = new IosTemplate(new Aps(alertTemplate), data);
 
             messageBuild = mapper.writeValueAsString(iosTemplate);
         } else if(platform.equals("G")) {
 
-            AndroidNotification androidNotification = new AndroidNotification(title, message);
-            Map<String, String> data = new HashMap<>();
-
+            AndroidNotification androidNotification = new AndroidNotification("Teste Notificação", "Exemplo de teste de notificação");
             AndroidTemplate androidTemplate = new AndroidTemplate(androidNotification, data);
             messageBuild = mapper.writeValueAsString(androidTemplate);
         }
 
         return messageBuild;
     }
+
 
 //    private Notification buildNotification(String plataforma, String mensagemPush) throws JsonProcessingException {
 //

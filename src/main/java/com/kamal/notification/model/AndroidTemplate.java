@@ -13,8 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AndroidTemplate {
-
     private AndroidNotification notification;
-    private Map<String, String> data;
-
+    private DataTemplate data;
 }
