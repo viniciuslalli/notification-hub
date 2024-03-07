@@ -58,21 +58,17 @@ public class AzureNotificationHubManager {
                         .collect(Collectors.toList());
                 String message = buildMessageForPlatform("G", request);
               notificationAndroid = Notification.createGcmNotification(message);
+              notificationOutcome = notificationHub.sendDirectNotification(notificationAndroid, androidTokenList);
+            }
 
-            } else if (!iosList.isEmpty()) {
+            if (!iosList.isEmpty()) {
                 iosTokenList = iosList.stream().map(destinatary -> destinatary.getDispostivos().getHash())
                         .collect(Collectors.toList());
                 String message = buildMessageForPlatform("A", request);
                 notificationIos = Notification.createAppleNotification(message);
-            }
-            if (notificationAndroid != null) {
-                  notificationOutcome = notificationHub.sendDirectNotification(notificationAndroid, androidTokenList);
-
-
-            } else if (notificationIos != null) {
                 notificationOutcome = notificationHub.sendDirectNotification(notificationIos, iosTokenList);
-
             }
+
         } catch (Exception e) {
             logger.log(Level.SEVERE, e.getMessage());
         }
