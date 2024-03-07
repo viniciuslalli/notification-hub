@@ -1,20 +1,14 @@
 package com.kamal.notification;
 
-import com.kamal.notification.model.NotificationRequest;
 import com.kamal.notification.model.PushNotification;
 import com.kamal.notification.model.RegistrationRequest;
-import com.kamal.notification.model.SendDirectionRequest;
 import com.windowsazure.messaging.CollectionResult;
 import com.windowsazure.messaging.NotificationOutcome;
-import com.windowsazure.messaging.Registration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.text.MessageFormat;
-import java.util.List;
 
 @RequestMapping("/api")
 @RestController

@@ -18,6 +18,8 @@ public class AzureNotificationHubManager {
 
     private static final Logger logger = Logger.getLogger(AzureNotificationHubManager.class.getCanonicalName());
 
+    private static final String ANDROID = "G";
+    private static final String IOS = "A";
     @Autowired
     private NotificationHub notificationHub;
 
@@ -39,39 +41,47 @@ public class AzureNotificationHubManager {
 
     public NotificationOutcome pushNotification(PushNotification request) {
         NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
-        try {
-            Notification notificationAndroid = null;
-            Notification notificationIos = null;
-            List<String> androidTokenList = null;
-            List<String> iosTokenList = null;
 
-            List<Destinatary> androidList = getRecipients(request, "G");
+        List<Destinatary> androidList = getRecipients(request, ANDROID);
 
-            List<Destinatary> iosList = getRecipients(request, "A");
+        List<Destinatary> iosList = getRecipients(request, IOS);
 
-            if (!androidList.isEmpty()) {
-                androidTokenList = getHashes(androidList);
-                String message = buildMessageForPlatform("G", request);
-                notificationAndroid = Notification.createGcmNotification(message);
-
-                notificationOutcome = sendNotificationHub(notificationAndroid, androidTokenList);
-                logger.log(Level.INFO, "[ Platform Android ] - NotificationId :: " + notificationOutcome.getNotificationId() + "\n TrackingId :: " + notificationOutcome.getTrackingId());
-            }
-
-            if (!iosList.isEmpty()) {
-                iosTokenList = getHashes(iosList);
-                String message = buildMessageForPlatform("A", request);
-                notificationIos = Notification.createAppleNotification(message);
-
-                notificationOutcome = sendNotificationHub(notificationIos, iosTokenList);
-
-                logger.log(Level.INFO, "[ Platform IoS ] - NotificationId :: " + notificationOutcome.getNotificationId() + "\n TrackingId :: " + notificationOutcome.getTrackingId());
-            }
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, e.getMessage());
+        if (!androidList.isEmpty()) {
+            buildAndSendNotification(androidList, ANDROID, request);
         }
+
+        if (!iosList.isEmpty()) {
+            buildAndSendNotification(iosList, IOS, request);
+        }
+
         return notificationOutcome;
+    }
+
+    private void buildAndSendNotification(List<Destinatary> recipients, String platform, PushNotification pushNotification) {
+        recipients
+                .stream()
+                .forEach(recipient -> {
+                    List<String> hasheTokens = getHasheTokens(recipients);
+                    String message = buildMessageForPlatform(platform, pushNotification);
+                    Notification notification = buildNotification(message, platform);
+                    NotificationOutcome notificationOutcome = sendNotificationHub(notification, hasheTokens);
+
+                    String template = platform.equals(ANDROID) ? "ANDROID" : platform.equals(IOS) ? "APPLE" : "";
+
+                    logger.log(Level.INFO, "Message sent successfully");
+                    logger.log(Level.INFO, "Platform " + template + " - NotificationId :: "
+                            + notificationOutcome.getNotificationId()
+                            + "\n TrackingId :: " + notificationOutcome.getTrackingId());
+                });
+
+    }
+
+    private static Notification buildNotification(String message, String platform) {
+        return platform.equals(ANDROID)
+                ? Notification.createGcmNotification(message)
+                : platform.equals(IOS)
+                ? Notification.createAppleNotification(message)
+                : null;
     }
 
     private static List<Destinatary> getRecipients(PushNotification request, String platform) {
@@ -79,34 +89,44 @@ public class AzureNotificationHubManager {
                 .getPlataforma().equals(platform)).collect(Collectors.toList());
     }
 
-    private NotificationOutcome sendNotificationHub(Notification notification, List<String> tokenList)
-            throws NotificationHubsException {
-
-        return notificationHub.sendDirectNotification(notification, tokenList);
+    private NotificationOutcome sendNotificationHub(Notification notification, List<String> tokenList) {
+        try {
+            return notificationHub.sendDirectNotification(notification, tokenList);
+        } catch (NotificationHubsException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private static List<String> getHashes(List<Destinatary> recipient) {
+    private static List<String> getHasheTokens(List<Destinatary> recipient) {
         return recipient.stream().map(destinatary -> destinatary.getDispostivos().getHash())
                 .collect(Collectors.toList());
     }
 
-    private String buildMessageForPlatform(String platform, PushNotification request) throws JsonProcessingException {
+    private String buildMessageForPlatform(String platform, PushNotification request) {
         String messageBuild = "";
 
         ObjectMapper mapper = new ObjectMapper();
         DataTemplate data = new DataTemplate(request);
 
-        if (platform.equals("A")) {
+        if (platform.equals(IOS)) {
             // TO DO - remover hardcode
             Alert alertTemplate = new Alert("Teste Notificação", "Exemplo de teste de notificação");
             IosTemplate iosTemplate = new IosTemplate(new Aps(alertTemplate), data);
 
-            messageBuild = mapper.writeValueAsString(iosTemplate);
-        } else if (platform.equals("G")) {
+            try {
+                messageBuild = mapper.writeValueAsString(iosTemplate);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
+        } else if (platform.equals(ANDROID)) {
             // TO DO - remover hardcode
             AndroidNotification androidNotification = new AndroidNotification("Teste Notificação", "Exemplo de teste de notificação");
             AndroidTemplate androidTemplate = new AndroidTemplate(androidNotification, data);
-            messageBuild = mapper.writeValueAsString(androidTemplate);
+            try {
+                messageBuild = mapper.writeValueAsString(androidTemplate);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         return messageBuild;
