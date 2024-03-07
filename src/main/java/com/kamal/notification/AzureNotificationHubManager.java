@@ -82,12 +82,13 @@ public class AzureNotificationHubManager {
         DataTemplate data = new DataTemplate(request);
 
         if(platform.equals("A")) {
+            // TO DO - remover hardcode
             Alert alertTemplate = new Alert("Teste Notificação", "Exemplo de teste de notificação");
             IosTemplate iosTemplate = new IosTemplate(new Aps(alertTemplate), data);
 
             messageBuild = mapper.writeValueAsString(iosTemplate);
         } else if(platform.equals("G")) {
-
+            // TO DO - remover hardcode
             AndroidNotification androidNotification = new AndroidNotification("Teste Notificação", "Exemplo de teste de notificação");
             AndroidTemplate androidTemplate = new AndroidTemplate(androidNotification, data);
             messageBuild = mapper.writeValueAsString(androidTemplate);
@@ -116,22 +117,22 @@ public class AzureNotificationHubManager {
 //        return notification;
 //    }
 
-    public NotificationOutcome pushMessageToMultipleDevicesGCM(List<String> deviceTokens) {
-        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
-        try {
-            //  mensagem de notificação aqui
-            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Notificação de teste para o Sidney, Vinicius e Justo  Apenas\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
-
-            Notification notification = Notification.createFcmNotification(notificationPayload);
-
-            // Envie a notificação para o token atual
-            notificationOutcome = notificationHub.sendDirectNotification(notification, deviceTokens);
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Azure Push Ne = {NotificationHubsException@7818} \"com.windowsazure.messaging.NotificationHubsException: Error: HTTP/1.1 403 Forbidden body: This operation requires one of the following permissions: [manage, send].\\nCurrent request has the following permissions: [listen].\\nPlease check both Namespace Network ACLs and used SharedAccessSignature.\"... Viewotification android devices failed.", e);
-        }
-        return notificationOutcome;
-    }
+//    public NotificationOutcome pushMessageToMultipleDevicesGCM(List<String> deviceTokens) {
+//        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
+//        try {
+//            //  mensagem de notificação aqui
+//            String notificationPayload = "{\"notification\":{\"title\":\"Título da Notificação\",\"body\":\"Notificação de teste para o Sidney, Vinicius e Justo  Apenas\"},\"data\":{\"chave1\":\"valor1\",\"chave2\":\"valor2\"}}";
+//
+//            Notification notification = Notification.createFcmNotification(notificationPayload);
+//
+//            // Envie a notificação para o token atual
+//            notificationOutcome = notificationHub.sendDirectNotification(notification, deviceTokens);
+//
+//        } catch (Exception e) {
+//            logger.log(Level.SEVERE, "Azure Push Ne = {NotificationHubsException@7818} \"com.windowsazure.messaging.NotificationHubsException: Error: HTTP/1.1 403 Forbidden body: This operation requires one of the following permissions: [manage, send].\\nCurrent request has the following permissions: [listen].\\nPlease check both Namespace Network ACLs and used SharedAccessSignature.\"... Viewotification android devices failed.", e);
+//        }
+//        return notificationOutcome;
+//    }
 //
 //    public NotificationOutcome pushMessageToDeviceGCM(NotificationRequest notificationRequest) {
 //        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");

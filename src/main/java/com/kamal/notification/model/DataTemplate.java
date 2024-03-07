@@ -24,10 +24,12 @@ public class DataTemplate {
     public DataTemplate(PushNotification request) {
         this.codigoProduto = request.getCodigoProduto();
         this.evento = request.getEvento();
-        this.tituloPush = request.getTituloPush();
+        // to do - remover
+        this.tituloPush = "Pix Recebido!";
         this.mensagemPush = request.getMensagemPush();
         this.urlDestino = request.getUrlDestino();
         this.plataformaCloud = request.getPlataformaCloud();
-        this.idNotificacoes = request.getIdNotificacoes();
+        // to do - remover
+        this.idNotificacoes = "3216837";
     }
 }
