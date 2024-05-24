@@ -19,11 +19,12 @@ public class DataTemplate {
     private String evento;
     private String mensagemPush;
     private String urlDestino;
+    private String plataformaCloud;
+    private String idNotificacoes;
 
 //    private Extra extra;
 
-    private String plataformaCloud;
-    private String idNotificacoes;
+
 
 //    private List<Destinatary> destinatarios;
 

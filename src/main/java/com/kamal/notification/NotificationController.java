@@ -55,15 +55,15 @@ public class NotificationController {
         }
     }
 
-    @PostMapping(value = "/pushSendDirectMessageTemplate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity pushSendDirectMessageToAndroidListTemplate(@RequestBody PushNotification request) {
-        try {
-            NotificationOutcome outcome = hub.pushNotificationTemplate(request);
-            return ResponseEntity.ok(outcome);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Falha ao enviar notificações: " + e.getMessage());
-        }
-    }
+//    @PostMapping(value = "/pushSendDirectMessageTemplate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity pushSendDirectMessageToAndroidListTemplate(@RequestBody PushNotification request) {
+//        try {
+//            NotificationOutcome outcome = hub.pushNotificationTemplate(request);
+//            return ResponseEntity.ok(outcome);
+//        } catch (Exception e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Falha ao enviar notificações: " + e.getMessage());
+//        }
+//    }
 
 //    @PostMapping(value = "/sendToMultipleDevicesGCM", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<String> pushMessageToDeviceGCM(@RequestBody List<String> deviceTokens) {

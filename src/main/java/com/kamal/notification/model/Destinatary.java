@@ -15,5 +15,5 @@ public class Destinatary {
     private String chaveDestinatario;
     private String hash;
     private String plataforma;
-//    private Device dispostivos;
+    private Device dispostivos;
 }
