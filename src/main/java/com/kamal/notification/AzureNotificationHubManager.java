@@ -8,7 +8,6 @@ import com.windowsazure.messaging.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,6 +17,9 @@ import java.util.stream.Collectors;
 public class AzureNotificationHubManager {
 
     private static final Logger logger = Logger.getLogger(AzureNotificationHubManager.class.getCanonicalName());
+
+    private static final String ANDROID = "G";
+    private static final String IOS = "A";
     @Autowired
     private NotificationHub notificationHub;
 
@@ -36,168 +38,100 @@ public class AzureNotificationHubManager {
 //
 //        return notificationOutcome;
 //    }
+
     public NotificationOutcome pushNotification(PushNotification request) {
         NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
-        try {
 
-            notificationHub.get
-            Notification notificationAndroid = null;
-            Notification notificationIos = null;
-            List<String> androidTokenList = null;
-            List<String> iosTokenList = null;
+        List<Destinatary> androidList = getRecipients(request, ANDROID);
 
-            List<Destinatary> androidList = request.getDestinatarios().stream().filter(destinatary -> destinatary.getPlataforma()
-                    .equals("G")).collect(Collectors.toList());
+        List<Destinatary> iosList = getRecipients(request, IOS);
 
-            List<Destinatary> iosList = request.getDestinatarios().stream().filter(destinatary -> destinatary.getPlataforma()
-                    .equals("A")).collect(Collectors.toList());
-
-            if(!androidList.isEmpty()) {
-                androidTokenList = androidList.stream().map(destinatary -> destinatary.getHash())
-                        .collect(Collectors.toList());
-                String message = buildMessageForPlatform("G", request);
-//                String message = buildMessageForPlatformAntigo("G", request);
-
-                notificationAndroid = Notification.createFcmV1Notification(message);
-//                notificationAndroid = Notification.createGcmNotification(message);
-
-
-
-              notificationOutcome = notificationHub.sendDirectNotification(notificationAndroid, androidTokenList);
-            }
-
-            if (!iosList.isEmpty()) {
-                iosTokenList = iosList.stream().map(destinatary -> destinatary.getHash())
-                        .collect(Collectors.toList());
-                String message = buildMessageForPlatform("A", request);
-                notificationIos = Notification.createAppleNotification(message);
-                notificationOutcome = notificationHub.sendDirectNotification(notificationIos, iosTokenList);
-            }
-
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, e.getMessage());
+        if (!androidList.isEmpty()) {
+            buildAndSendNotification(androidList, ANDROID, request);
         }
+
+        if (!iosList.isEmpty()) {
+            buildAndSendNotification(iosList, IOS, request);
+        }
+
         return notificationOutcome;
     }
 
-    private String buildMessageForPlatform(String platform, PushNotification request) throws JsonProcessingException {
+    private void buildAndSendNotification(List<Destinatary> recipients, String platform, PushNotification pushNotification) {
+        recipients
+                .stream()
+                .forEach(recipient -> {
+                    List<String> hasheTokens = getHasheTokens(recipients);
+                    String message = buildMessageForPlatform(platform, pushNotification);
+                    Notification notification = buildNotification(message, platform);
+                    NotificationOutcome notificationOutcome = sendNotificationHub(notification, hasheTokens);
+
+                    String template = platform.equals(ANDROID) ? "ANDROID" : platform.equals(IOS) ? "APPLE" : "";
+
+                    logger.log(Level.INFO, "Message sent successfully");
+                    logger.log(Level.INFO, "Platform " + template + " - NotificationId :: "
+                            + notificationOutcome.getNotificationId()
+                            + "\n TrackingId :: " + notificationOutcome.getTrackingId());
+                });
+
+    }
+
+    private static Notification buildNotification(String message, String platform) {
+        return platform.equals(ANDROID)
+                ? Notification.createGcmNotification(message)
+                : platform.equals(IOS)
+                ? Notification.createAppleNotification(message)
+                : null;
+    }
+
+    private static List<Destinatary> getRecipients(PushNotification request, String platform) {
+        return request.getDestinatarios().stream().filter(destinatary -> destinatary.getDispostivos()
+                .getPlataforma().equals(platform)).collect(Collectors.toList());
+    }
+
+    private NotificationOutcome sendNotificationHub(Notification notification, List<String> tokenList) {
+        try {
+            return notificationHub.sendDirectNotification(notification, tokenList);
+        } catch (NotificationHubsException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static List<String> getHasheTokens(List<Destinatary> recipient) {
+        return recipient.stream().map(destinatary -> destinatary.getDispostivos().getHash())
+                .collect(Collectors.toList());
+    }
+
+    private String buildMessageForPlatform(String platform, PushNotification request) {
         String messageBuild = "";
 
         ObjectMapper mapper = new ObjectMapper();
         DataTemplate data = new DataTemplate(request);
 
-
-        if(platform.equals("A")) {
+        if (platform.equals(IOS)) {
             // TO DO - remover hardcode
-            Alert alertTemplate = new Alert(buildTitleMessage(request.getEvento()), request.getMensagemPush());
+            Alert alertTemplate = new Alert("Teste Notificação", "Exemplo de teste de notificação");
             IosTemplate iosTemplate = new IosTemplate(new Aps(alertTemplate), data);
 
-            messageBuild = mapper.writeValueAsString(iosTemplate);
-        } else if(platform.equals("G")) {
-            // TO DO - remover hardcode
-            AndroidNotification androidNotification = new AndroidNotification(buildTitleMessage(request.getEvento()), request.getMensagemPush());
-//            AndroidNotification androidNotification = new AndroidNotification(request.getMensagemPush());
-
-            Message message = new Message(androidNotification, data);
-//            Message message = new Message(androidNotification);
-            AndroidTemplate androidTemplate = new AndroidTemplate(message);
-            messageBuild = mapper.writeValueAsString(androidTemplate);
-        }
-        return messageBuild;
-    }
-
-    private String buildMessageForPlatformAntigo(String platform, PushNotification request) throws JsonProcessingException {
-        String messageBuild = "";
-
-        ObjectMapper mapper = new ObjectMapper();
-        DataTemplate data = new DataTemplate(request);
-//        data.setDestinatarios(request.getDestinatarios());
-//
-//        List<Destinatary> destinatarios = new ArrayList<>();
-//        for (int i = 0; i <= 25; i++){
-//            destinatarios.add(data.getDestinatarios().get(0));
-//        }
-//        data.setDestinatarios(destinatarios);
-
-        if(platform.equals("A")) {
-            // TO DO - remover hardcode
-            Alert alertTemplate = new Alert(buildTitleMessage(request.getEvento()), request.getMensagemPush());
-            IosTemplate iosTemplate = new IosTemplate(new Aps(alertTemplate), data);
-
-            messageBuild = mapper.writeValueAsString(iosTemplate);
-        } else if(platform.equals("G")) {
-            // TO DO - remover hardcode
-            AndroidNotification androidNotification = new AndroidNotification(buildTitleMessage(request.getEvento()), request.getMensagemPush());
-
-            Message message = new Message(androidNotification, data);
-            messageBuild = mapper.writeValueAsString(message);
-        }
-        return messageBuild;
-    }
-
-    public String buildTitleMessage(String evento) {
-        String titleMessage;
-        switch (evento) {
-            case "pix-realizado-enviado":
-                titleMessage = "Pix Enviado!";
-                break;
-            case "pix-realizado-recebido":
-                titleMessage = "Pix Recebido!";
-                break;
-            case "nova-mensagem-chat":
-                titleMessage = "Nova mensagem!";
-                break;
-            default:
-                titleMessage = "";
-                break;
-        }
-        return titleMessage;
-    }
-
-
-    public NotificationOutcome pushNotificationTemplate(PushNotification request) {
-        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
-        try {
-            Map<String, String> properties = getStringStringMap(request);
-
-            // Cria a notificação de template
-            Notification templateNotification = Notification.createTemplateNotification(properties);
-
-            // Assume que todos os tokens são coletados e envia a notificação
-            List<String> allTokens = request.getDestinatarios().stream()
-                    .map(Destinatary::getHash)
-                    .collect(Collectors.toList());
-
-            if (!allTokens.isEmpty() && allTokens != null) {
-                notificationOutcome = notificationHub.sendDirectNotification(templateNotification, allTokens);
+            try {
+                messageBuild = mapper.writeValueAsString(iosTemplate);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
             }
-        } catch (Exception e) {
-            logger.log(Level.SEVERE, "Failed to send notification: " + e.getMessage(), e);
+        } else if (platform.equals(ANDROID)) {
+            // TO DO - remover hardcode
+            AndroidNotification androidNotification = new AndroidNotification("Teste Notificação", "Exemplo de teste de notificação");
+            AndroidTemplate androidTemplate = new AndroidTemplate(androidNotification, data);
+            try {
+                messageBuild = mapper.writeValueAsString(androidTemplate);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException(e);
+            }
         }
-        return notificationOutcome;
+
+        return messageBuild;
     }
 
-    private static Map<String, String> getStringStringMap(PushNotification request) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper(); // Instância do ObjectMapper para serialização
-
-        // Cria o objeto 'extra'
-        Map<String, String> extraMap = new HashMap<>();
-        extraMap.put("plataformaCloud", "AZURE");
-        extraMap.put("idNotificacoes", request.getIdNotificacoes());
-
-        // Serializa o objeto 'extra' para string JSON
-        String extraJson = objectMapper.writeValueAsString(extraMap);
-
-        // Cria o mapa de propriedades para o template, incluindo o 'extra' como uma string JSON
-        Map<String, String> properties = new HashMap<>();
-        properties.put("title", ""); // O título será preenchido pelo cliente.
-        properties.put("body", request.getMensagemPush());
-        properties.put("codigoProduto", request.getCodigoProduto());
-        properties.put("evento", request.getEvento());
-        properties.put("urlDestino", request.getUrlDestino());
-//        properties.put("extra", extraJson); // Inclui o 'extra' serializado
-        return properties;
-    }
 
 //    private Notification buildNotification(String plataforma, String mensagemPush) throws JsonProcessingException {
 //
@@ -218,7 +152,7 @@ public class AzureNotificationHubManager {
 //        return notification;
 //    }
 
-//    public NotificationOutcome pushMessageToMultipleDevicesGCM(List<String> deviceTokens) {
+    //    public NotificationOutcome pushMessageToMultipleDevicesGCM(List<String> deviceTokens) {
 //        NotificationOutcome notificationOutcome = new NotificationOutcome("", "");
 //        try {
 //            //  mensagem de notificação aqui
@@ -306,17 +240,17 @@ public class AzureNotificationHubManager {
 //        }
 //    }
 //
-//    public Registration verifyRegistrationId(String registrationId){
-//        Registration registration = null;
-//        try {
-//             registration = notificationHub.getRegistration(registrationId);
-//        } catch (NotificationHubsException e) {
-//            logger.log(Level.SEVERE, "RegistrationId not found");
-//        }
-//        return registration;
-//    }
-//
-    public CollectionResult getRegistrations(){
+    public Registration verifyRegistrationId(String registrationId) {
+        Registration registration = null;
+        try {
+            registration = notificationHub.getRegistration(registrationId);
+        } catch (NotificationHubsException e) {
+            logger.log(Level.SEVERE, "RegistrationId not found");
+        }
+        return registration;
+    }
+
+    public CollectionResult getRegistrations() {
         CollectionResult registration = null;
         try {
             registration = notificationHub.getRegistrations();
@@ -328,18 +262,19 @@ public class AzureNotificationHubManager {
         }
         return registration;
     }
-////
-//    public Boolean deleteRegistrationId(RegistrationRequest request){
-//        boolean result = false;
-//        Registration registrationDelete = verifyRegistrationId(request.getRegistrationId());
-//        try {
-//            notificationHub.deleteRegistration(registrationDelete);
-//            result = true;
-//        } catch (NotificationHubsException e) {
-//            logger.log(Level.SEVERE, "RegistrationId delete failed");
-//        }
-//        return result;
-//    }
+
+    //
+    public Boolean deleteRegistrationId(RegistrationRequest request) {
+        boolean result = false;
+        Registration registrationDelete = verifyRegistrationId(request.getRegistrationId());
+        try {
+            notificationHub.deleteRegistration(registrationDelete);
+            result = true;
+        } catch (NotificationHubsException e) {
+            logger.log(Level.SEVERE, "RegistrationId delete failed");
+        }
+        return result;
+    }
 //
 //    public Registration updateRegistrationId(UpdatedRequest request) {
 //
@@ -349,6 +284,7 @@ public class AzureNotificationHubManager {
 //            try {
 //                registrationUpdated.setTags(request.getClientTag());
 //                registrationUpdated.setRegistrationId(request.getRegistrationIdNew());
+//                registrationUpdated = notificationHub.updateRegistration(registrationUpdated);
 //
 //                // TO DO verificar outras setters
 //            } catch (NotificationHubsException e) {
@@ -357,7 +293,5 @@ public class AzureNotificationHubManager {
 //        }
 //        return registrationUpdated;
 //    }
-
-
 
 }
