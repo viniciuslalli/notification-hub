@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Device {
-    private String hash;
+    private String chaveDestinatario;
+    private String hashDispositivo;
     private String plataforma;
 }

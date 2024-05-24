@@ -13,5 +13,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Destinatary {
     private String chaveDestinatario;
-    private Device dispostivos;
+    private String hash;
+    private String plataforma;
+//    private Device dispostivos;
 }

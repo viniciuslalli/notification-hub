@@ -1,12 +1,13 @@
 package com.kamal.notification.model;
 
-import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @AllArgsConstructor
 @Getter
-public class AndroidTemplate {
-    private Message message;
+public class Message {
+    private AndroidNotification notification;
+    private DataTemplate data;
 }

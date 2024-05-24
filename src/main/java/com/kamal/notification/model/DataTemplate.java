@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Builder
@@ -15,21 +17,24 @@ public class DataTemplate {
 
     private String codigoProduto;
     private String evento;
-    private String tituloPush;
     private String mensagemPush;
     private String urlDestino;
+
+//    private Extra extra;
+
     private String plataformaCloud;
     private String idNotificacoes;
+
+//    private List<Destinatary> destinatarios;
 
     public DataTemplate(PushNotification request) {
         this.codigoProduto = request.getCodigoProduto();
         this.evento = request.getEvento();
-        // to do - remover
-        this.tituloPush = "Pix Recebido!";
         this.mensagemPush = request.getMensagemPush();
-        this.urlDestino = request.getUrlDestino();
-        this.plataformaCloud = request.getPlataformaCloud();
-        // to do - remover
-        this.idNotificacoes = "3216837";
+        this.urlDestino = request.getCodigoCAR();
+        this.idNotificacoes = request.getIdNotificacoes();
+        this.plataformaCloud = "AZURE";
+
+
     }
 }

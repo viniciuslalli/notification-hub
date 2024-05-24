@@ -61,6 +61,16 @@ public class NotificationController {
         }
     }
 
+    @PostMapping(value = "/pushSendDirectMessageTemplate", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity pushSendDirectMessageToAndroidListTemplate(@RequestBody PushNotification request) {
+        try {
+            NotificationOutcome outcome = hub.pushNotificationTemplate(request);
+            return ResponseEntity.ok(outcome);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Falha ao enviar notificações: " + e.getMessage());
+        }
+    }
+
 //    @PostMapping(value = "/sendToMultipleDevicesGCM", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity<String> pushMessageToDeviceGCM(@RequestBody List<String> deviceTokens) {
 //        try {
@@ -104,15 +114,15 @@ public class NotificationController {
             return ResponseEntity.ok(registration);
         }
     }
-
-    @DeleteMapping(value = "/deleteRegistrationId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity deleteRegistrationId(@RequestBody RegistrationRequest request) {
-
-            Boolean deletetedRegistration = hub.deleteRegistrationId(request);
-
-            return deletetedRegistration ? ResponseEntity.ok("RegistrationId: " + request.getRegistrationId() + " deleted with success!")
-                    : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Atempting of delete process failed");
-    }
+//
+//    @DeleteMapping(value = "/deleteRegistrationId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+//    public ResponseEntity deleteRegistrationId(@RequestBody RegistrationRequest request) {
+//
+//            Boolean deletetedRegistration = hub.deleteRegistrationId(request);
+//
+//            return deletetedRegistration ? ResponseEntity.ok("RegistrationId: " + request.getRegistrationId() + " deleted with success!")
+//                    : ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Atempting of delete process failed");
+//    }
 //
 //    @PatchMapping(value = "/updateRegistrationId", consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 //    public ResponseEntity updateRegistrationId(@RequestBody UpdatedRequest request) {
