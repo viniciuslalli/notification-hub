@@ -11,8 +11,10 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Destinatary {
-    private String chaveDestinatario;
-    private String hash;
-    private String plataforma;
+public class ExtraData {
+    private String link;
+    private String type;
+    private String body;
+    private String title;
+    private String tplink;
 }

@@ -1,5 +1,6 @@
 package com.kamal.notification.model;
 
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +12,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class Destinatary {
-    private String chaveDestinatario;
-    private String hash;
-    private String plataforma;
+public class NewDataTemplate {
+
+    private ExtraData extra_data;
+
 }

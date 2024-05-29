@@ -22,11 +22,9 @@ public class DataTemplate {
     private String plataformaCloud;
     private String idNotificacoes;
 
-//    private Extra extra;
 
 
 
-//    private List<Destinatary> destinatarios;
 
     public DataTemplate(PushNotification request) {
         this.codigoProduto = request.getCodigoProduto();

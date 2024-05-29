@@ -28,6 +28,6 @@ public class PushNotification {
     private String idNotificacoes;
 
 
-    private List<Destinatary> destinatarios;
+    private List<Device> destinatarios;
 
 }

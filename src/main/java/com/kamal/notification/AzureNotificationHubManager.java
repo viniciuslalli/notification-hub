@@ -35,36 +35,47 @@ public class AzureNotificationHubManager {
 
             DataTemplate dataTemplateDTO = new DataTemplate(dataTemplate);
 
-            List<Destinatary> androidList = dataTemplate.getDestinatarios().stream()
-                    .filter(dispositivosResponse -> dispositivosResponse.getPlataforma().equals("G"))
-                    .toList();
+            //Java Versão 16
+//            List<Destinatary> androidList = dataTemplate.getDestinatarios().stream()
+//                    .filter(dispositivosResponse -> dispositivosResponse.getPlataforma().equals("G"))
+//                    .toList();
+//
+//            List<Destinatary> iosList = dataTemplate.getDestinatarios().stream()
+//                    .filter(dispositivosResponse -> dispositivosResponse.getPlataforma().equals("A"))
+//                    .toList();
 
-            List<Destinatary> iosList = dataTemplate.getDestinatarios().stream()
-                    .filter(dispositivosResponse -> dispositivosResponse.getPlataforma().equals("A"))
-                    .toList();
+            List<Device> androidList = dataTemplate.getDestinatarios().stream()
+                    .filter(dispositivosResponse -> "G".equals(dispositivosResponse.getPlataforma()))
+                    .collect(Collectors.toList());
+
+            List<Device> iosList = dataTemplate.getDestinatarios().stream()
+                    .filter(dispositivosResponse -> "A".equals(dispositivosResponse.getPlataforma()))
+                    .collect(Collectors.toList());
 
             if (!androidList.isEmpty()) {
-                androidTokenList = androidList.stream().map(dispositivosResponse -> dispositivosResponse.getDispostivos().getHashDispositivo())
+                androidTokenList = androidList.stream().map(dispositivosResponse -> dispositivosResponse.getHashDispositivo())
                         .collect(Collectors.toList());
-                String message = buildMessageForPlatform("G", dataTemplateDTO);
+                String message = buildMessageForPlatformVelho("G", dataTemplateDTO);
+//                String message = buildMessageForPlatformNovo("G", dataTemplateDTO, androidTokenList.get(0));
                 notificationAndroid = Notification.createFcmV1Notification(message);
                 logger.info("Headers da Notificação: {}" + notificationAndroid.getHeaders());
                 logger.info("Body da Notificação: {}" + notificationAndroid.getBody());
 
                 notificationOutcome = notificationHub.sendDirectNotification(notificationAndroid, androidTokenList);
-//                logger.info("Tracking ID Android Platform - {}", notificationOutcome.getTrackingId());
+                logger.info("Tracking ID Android Platform: " + notificationOutcome.getTrackingId());
             }
 
             if (!iosList.isEmpty()) {
-                iosTokenList = iosList.stream().map(dispositivosResponse -> dispositivosResponse.getDispostivos().getHashDispositivo())
+                iosTokenList = iosList.stream().map(dispositivosResponse -> dispositivosResponse.getHashDispositivo())
                         .collect(Collectors.toList());
-                String message = buildMessageForPlatform("A", dataTemplateDTO);
+                String message = buildMessageForPlatformVelho("A", dataTemplateDTO);
+
                 notificationIos = Notification.createAppleNotification(message);
 //                logger.info("Headers da Notificação: {}", notificationIos.getHeaders());
-                logger.info("Body da Notificação: {}" + notificationIos.getBody().toString());
+                logger.info("Body da Notificação: " + notificationIos.getBody().toString());
 
                 notificationOutcome = notificationHub.sendDirectNotification(notificationIos, iosTokenList);
-                logger.info("Tracking ID IoS Platform - {}" + notificationOutcome.getTrackingId());
+                logger.info("Tracking ID IoS Platform : " + notificationOutcome.getTrackingId());
             }
 
         } catch (Exception e) {
@@ -75,10 +86,11 @@ public class AzureNotificationHubManager {
         return notificationOutcome;
     }
 
-    private String buildMessageForPlatform(String platform, DataTemplate dataTemplateDTO) throws JsonProcessingException {
+    private String buildMessageForPlatformVelho(String platform, DataTemplate dataTemplateDTO) throws JsonProcessingException {
+
+
         String messageBuild = "";
         ObjectMapper mapper = new ObjectMapper();
-//        DataTemplateDTO dataTemplateDTO = new DataTemplateDTO(dataTemplate);
 
         if (platform.equals("A")) {
 
@@ -90,7 +102,39 @@ public class AzureNotificationHubManager {
 
             AndroidNotification androidNotification = new AndroidNotification(buildTitleMessage(dataTemplateDTO.getEvento()), dataTemplateDTO.getMensagemPush());
             Message message = new Message(androidNotification, dataTemplateDTO);
+
             AndroidTemplate androidTemplate = new AndroidTemplate(message);
+            messageBuild = mapper.writeValueAsString(androidTemplate);
+        }
+
+        return messageBuild;
+    }
+    private String buildMessageForPlatformNovo(String platform, DataTemplate dataTemplateDTO, String device) throws JsonProcessingException {
+        String messageBuild = "";
+        ObjectMapper mapper = new ObjectMapper();
+//        DataTemplateDTO dataTemplateDTO = new DataTemplateDTO(dataTemplate);
+        ExtraData data = new ExtraData();
+        data.setLink("link");
+        data.setType("4");
+        data.setBody("Recebendo mensagem pelo Azure Notification HUB.");
+        data.setTitle("BRADESCO");
+        data.setTplink("4");
+
+        NewDataTemplate dataTemplate = new NewDataTemplate(data);
+
+        if (platform.equals("A")) {
+
+            Alert alertTemplate = new Alert(buildTitleMessage(dataTemplateDTO.getEvento()), dataTemplateDTO.getMensagemPush());
+            IosTemplate iosTemplate = new IosTemplate(new Aps(alertTemplate), dataTemplateDTO);
+
+            messageBuild = mapper.writeValueAsString(iosTemplate);
+        } else if (platform.equals("G")) {
+
+            AndroidNotification androidNotification = new AndroidNotification(buildTitleMessage(dataTemplateDTO.getEvento()), dataTemplateDTO.getMensagemPush());
+//            Message message = new Message(androidNotification, dataTemplateDTO);
+            MessageNovo message = new MessageNovo(device, androidNotification, dataTemplate);
+
+            AndroidTemplateNovo androidTemplate = new AndroidTemplateNovo(message);
             messageBuild = mapper.writeValueAsString(androidTemplate);
         }
 
@@ -98,12 +142,22 @@ public class AzureNotificationHubManager {
     }
 
     public String buildTitleMessage(String evento) {
-        String titleMessage = switch (evento) {
-            case "pix-realizado-enviado" -> "Pix enviado";
-            case "pix-realizado-recebido" -> "Pix recebido";
-            case "nova-mensagem-chat" -> "Net Empresa";
-            default -> "";
-        };
+        String titleMessage;
+
+        switch (evento) {
+            case "pix-realizado-enviado":
+                titleMessage = "Pix enviado";
+                break;
+            case "pix-realizado-recebido":
+                titleMessage = "Pix recebido";
+                break;
+            case "nova-mensagem-chat":
+                titleMessage = "Net Empresa";
+                break;
+            default:
+                titleMessage = "";
+                break;
+        }
         return titleMessage;
     }
 
